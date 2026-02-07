@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Nova 极速数据直达</title>
+    <style>
+        body { background: #1a1a1a; color: #00ff00; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .search-box { text-align: center; border: 1px solid #333; padding: 40px; border-radius: 12px; background: #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 12px; font-size: 20px; outline: none; text-align: center; width: 200px; border-radius: 4px; }
+        button { background: #00ff00; color: #000; border: none; padding: 12px 24px; font-size: 18px; margin-left: 10px; cursor: pointer; font-weight: bold; border-radius: 4px; }
+        button:hover { background: #00cc00; }
+        p { color: #888; margin-top: 15px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="search-box">
+        <h2>NOVA 股票 H5 直达</h2>
+        <input type="text" id="stockCode" placeholder="输入代码 (如 600519)" autofocus>
+        <button onclick="go()">跳转</button>
+        <p>支持识别：6/0/3/8/4 开头代码</p>
+    </div>
+
+    <script>
+        function go() {
+            const code = document.getElementById('stockCode').value.trim();
+            if (code.length !== 6) {
+                alert("请输入6位股票代码");
+                return;
+            }
+            
+            // 逻辑判断：1代表沪市(主板6, 科创板688)，2代表深市(00, 30)及北交所
+            let market = "2"; // 默认深市
+            if (code.startsWith('6')) {
+                market = "1";
+            } else if (code.startsWith('0') || code.startsWith('3')) {
+                market = "2";
+            } else if (code.startsWith('8') || code.startsWith('4')) {
+                market = "2"; // 北交所在这个系统里通常归类为2
+            }
+
+            // 生成 H5 专用直连地址
+            const targetUrl = `https://quote.eastmoney.com/chart/h5.html?id=${code}${market}&type=RK`;
+            
+            window.open(targetUrl, '_blank');
+        }
+
+        // 监听回车键
+        document.getElementById('stockCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') go();
+        });
+    </script>
+</body>
+</html>
