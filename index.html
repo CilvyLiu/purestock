@@ -2,51 +2,67 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Nova 极速数据直达</title>
+    <title>Nova 核心解耦终端</title>
     <style>
-        body { background: #1a1a1a; color: #00ff00; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .search-box { text-align: center; border: 1px solid #333; padding: 40px; border-radius: 12px; background: #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        input { background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 12px; font-size: 20px; outline: none; text-align: center; width: 200px; border-radius: 4px; }
-        button { background: #00ff00; color: #000; border: none; padding: 12px 24px; font-size: 18px; margin-left: 10px; cursor: pointer; font-weight: bold; border-radius: 4px; }
-        button:hover { background: #00cc00; }
-        p { color: #888; margin-top: 15px; font-size: 12px; }
+        /* 保持你喜欢的黑绿配色，增强科技感 */
+        body { background: #000; color: #00ff00; font-family: 'Consolas', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .search-box { text-align: center; border: 1px solid #00ff00; padding: 50px; border-radius: 4px; background: #050505; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
+        h2 { letter-spacing: 4px; margin-bottom: 30px; font-size: 24px; }
+        input { background: #000; border: none; border-bottom: 2px solid #00ff00; color: #fff; padding: 12px; font-size: 28px; outline: none; text-align: center; width: 220px; margin-bottom: 30px; transition: 0.3s; }
+        input:focus { border-bottom: 2px solid #fff; box-shadow: 0 5px 15px rgba(0,255,0,0.1); }
+        .btn-group { display: flex; gap: 15px; justify-content: center; }
+        button { background: transparent; color: #00ff00; border: 1px solid #00ff00; padding: 12px 20px; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 2px; transition: 0.2s; }
+        button:hover { background: #00ff00; color: #000; }
+        button.primary { background: #00ff00; color: #000; }
+        button.primary:hover { background: #00cc00; }
+        p { color: #444; margin-top: 25px; font-size: 11px; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <div class="search-box">
-        <h2>NOVA 股票 H5 直达</h2>
-        <input type="text" id="stockCode" placeholder="输入代码 (如 600519)" autofocus>
-        <button onclick="go()">跳转</button>
-        <p>支持识别：6/0/3/8/4 开头代码</p>
+        <h2>CORE_DECOUPLER v2.0</h2>
+        <input type="text" id="stockCode" placeholder="CODE" maxlength="6" autofocus autocomplete="off">
+        
+        <div class="btn-group">
+            <button class="primary" onclick="launch('chart')">解耦图表 (RAW)</button>
+            <button onclick="launch('finance')">解耦财务 (DATA)</button>
+        </div>
+        
+        <p>System Status: Ready | New Window Mode</p>
     </div>
 
     <script>
-        function go() {
+        function launch(type) {
             const code = document.getElementById('stockCode').value.trim();
             if (code.length !== 6) {
-                alert("请输入6位股票代码");
+                alert("请输入6位有效代码");
                 return;
             }
             
-            // 逻辑判断：1代表沪市(主板6, 科创板688)，2代表深市(00, 30)及北交所
-            let market = "2"; // 默认深市
-            if (code.startsWith('6')) {
-                market = "1";
-            } else if (code.startsWith('0') || code.startsWith('3')) {
-                market = "2";
-            } else if (code.startsWith('8') || code.startsWith('4')) {
-                market = "2"; // 北交所在这个系统里通常归类为2
+            // 市场逻辑转换
+            const isSH = code.startsWith('6');
+            const marketNum = isSH ? "1" : "2"; // 1为沪，2为深/北
+            const marketPre = isSH ? "SH" : "SZ"; // 财务包专用前缀
+
+            let targetUrl = "";
+
+            if (type === 'chart') {
+                // 方案：真正的纯黑底层图表容器 (h5chart/main)
+                // style=6 强制黑色，is_full_screen=true 剔除边框
+                targetUrl = `https://quote.eastmoney.com/h5chart/main.html?id=${code}${marketNum}&type=RK&style=6`;
+            } else {
+                // 方案：你指定的解耦财务内核 (FinanceAnalysis/Index)
+                // color=b 强制开启纯黑模式
+                targetUrl = `https://emweb.securities.eastmoney.com/pc_hsf10/FinanceAnalysis/Index?code=${marketPre}${code}&color=b`;
             }
 
-            // 生成 H5 专用直连地址
-            const targetUrl = `https://quote.eastmoney.com/chart/h5.html?id=${code}${market}&type=RK`;
-            
+            // 执行另开窗口访问
             window.open(targetUrl, '_blank');
         }
 
-        // 监听回车键
+        // 监听回车键，默认执行图表跳转
         document.getElementById('stockCode').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') go();
+            if (e.key === 'Enter') launch('chart');
         });
     </script>
 </body>
