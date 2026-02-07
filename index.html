@@ -31,35 +31,39 @@
         <p>System Status: Ready | New Window Mode</p>
     </div>
 
-    <script>
-        function launch(type) {
-            const code = document.getElementById('stockCode').value.trim();
-            if (code.length !== 6) {
-                alert("请输入6位有效代码");
-                return;
-            }
-            
-            // 市场逻辑转换
-            const isSH = code.startsWith('6');
-            const marketNum = isSH ? "1" : "2"; // 1为沪，2为深/北
-            const marketPre = isSH ? "SH" : "SZ"; // 财务包专用前缀
+  <script>
+    function launch(type) {
+        const code = document.getElementById('stockCode').value.trim();
+        if (code.length !== 6) {
+            alert("请输入6位有效代码");
+            return;
+        }
+        
+        // 市场逻辑转换
+        const isSH = code.startsWith('6');
+        const marketPreUpper = isSH ? "SH" : "SZ"; // 用于财务 (大写)
+        const marketPreLower = isSH ? "sh" : "sz"; // 用于图表 (小写)
 
-            let targetUrl = "";
+        let targetUrl = "";
 
-            if (type === 'chart') {
-                // 方案：真正的纯黑底层图表容器 (h5chart/main)
-                // style=6 强制黑色，is_full_screen=true 剔除边框
-                targetUrl = `https://quote.eastmoney.com/h5chart/main.html?id=${code}${marketNum}&type=RK&style=6`;
-            } else {
-                // 方案：你指定的解耦财务内核 (FinanceAnalysis/Index)
-                // color=b 强制开启纯黑模式
-                targetUrl = `https://emweb.securities.eastmoney.com/pc_hsf10/FinanceAnalysis/Index?code=${marketPre}${code}&color=b`;
-            }
-
-            // 执行另开窗口访问
-            window.open(targetUrl, '_blank');
+        if (type === 'chart') {
+            // 方案：跳转至你指定的 concept 详情页锚点
+            // #fschart-r 会让页面加载后自动滚动到图表位置
+            targetUrl = `https://quote.eastmoney.com/concept/${marketPreLower}${code}.html?from=classic#fschart-r`;
+        } else {
+            // 方案：继续使用解耦后的财务纯黑内核 (这个地址目前最纯净)
+            targetUrl = `https://emweb.securities.eastmoney.com/pc_hsf10/FinanceAnalysis/Index?code=${marketPreUpper}${code}&color=b`;
         }
 
+        // 另开新窗口访问
+        window.open(targetUrl, '_blank');
+    }
+
+    // 监听回车键
+    document.getElementById('stockCode').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') launch('chart');
+    });
+</script>
         // 监听回车键，默认执行图表跳转
         document.getElementById('stockCode').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') launch('chart');
